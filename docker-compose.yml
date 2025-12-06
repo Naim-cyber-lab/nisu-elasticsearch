@@ -1,22 +1,39 @@
-version: '3'
+# La clé "version" est obsolète avec docker compose v2, tu peux la supprimer
+# version: '3'
+
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     container_name: elasticsearch
+    restart: unless-stopped
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false  # Désactive la sécurité (pour simplifier)
+      - xpack.security.enabled=false          # désactive la sécurité (OK pour lab)
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m        # limite la JVM à 512 Mo
     ports:
       - "9200:9200"
       - "9300:9300"
+    ulimits:                                  # recommandations Elastic (et utile en LXC)
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - esdata:/usr/share/elasticsearch/data
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.0
     container_name: kibana
+    restart: unless-stopped
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    # Pour corriger ton erreur "Unable to write to UUID file ... EACCES"
+    # On fait tourner Kibana en root (OK pour ton lab)
+    user: "0"
     ports:
       - "5601:5601"
 
