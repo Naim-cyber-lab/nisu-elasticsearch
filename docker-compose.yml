@@ -1,5 +1,4 @@
-# La clé "version" est obsolète avec docker compose v2, tu peux la supprimer
-# version: '3'
+# version: '3'  # optionnelle / obsolète, tu peux la laisser ou l'enlever
 
 services:
   elasticsearch:
@@ -8,12 +7,12 @@ services:
     restart: unless-stopped
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false          # désactive la sécurité (OK pour lab)
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m        # limite la JVM à 512 Mo
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "9200:9200"
       - "9300:9300"
-    ulimits:                                  # recommandations Elastic (et utile en LXC)
+    ulimits:
       memlock:
         soft: -1
         hard: -1
@@ -31,9 +30,8 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     depends_on:
       - elasticsearch
-    # Pour corriger ton erreur "Unable to write to UUID file ... EACCES"
-    # On fait tourner Kibana en root (OK pour ton lab)
-    user: "0"
+    user: "0"                # on reste root...
+    command: ["--allow-root"]  # ...mais on ajoute le flag demandé
     ports:
       - "5601:5601"
 
